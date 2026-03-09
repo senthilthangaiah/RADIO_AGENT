@@ -267,6 +267,10 @@ MIT License — free to use, modify, and distribute. See [LICENSE](LICENSE) for 
 Built by **Senthil Thangaiah**
 
 
+## Snapshot
+
+![GenAI Radio Screenshot](./snapshot1.png)
+
 
 ---
 
