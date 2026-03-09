@@ -269,7 +269,7 @@ Built by **Senthil Thangaiah**
 
 ## Snapshot
 
-![GenAI Radio Screenshot](./snapshot.png)
+![GenAI Radio Screenshot](./sanpshot.png)
 ![GenAI Radio Screenshot](./snapshot1.png)
 
 
