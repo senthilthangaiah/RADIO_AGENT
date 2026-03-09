@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GENAI RADIO — Retro Broadcast</title>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Playfair+Display:ital,wght@0,700;1,400&family=VT323&family=Cutive+Mono&display=swap" rel="stylesheet">
+<script src="https://code.responsivevoice.org/responsivevoice.js?key=eJg0aTzD"></script>
+<style>
+:root {
+  --walnut-dark:#2a1a0a; --walnut-mid:#3d2510; --walnut-light:#5c3a1a; --walnut-hi:#7a4f22;
+  --brass:#b8860b; --brass-light:#d4a017; --brass-shine:#f0c040;
+  --cream:#f5ead6; --cream-dark:#e8d5b0; --fabric:#c4956a;
+  --dial-bg:#1a0f04; --dial-glow:#ff8c00; --dial-warm:#ffb347;
+  --bakelite:#1c0f06; --green-eye:#39ff14;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+  min-height:100vh;
+  background:radial-gradient(ellipse at 50% 0%,#3d2510 0%,#1a0c04 60%,#0d0602 100%);
+  display:flex;flex-direction:column;align-items:center;padding:30px 16px 60px;
+  font-family:'Special Elite',cursive;
+}
+
+/* ═══ SETUP ═══ */
+.setup-overlay{position:fixed;inset:0;background:rgba(10,5,2,0.96);display:flex;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(3px);}
+.setup-box{background:var(--walnut-mid);border:3px solid var(--brass);border-radius:12px;padding:40px 38px;max-width:480px;width:94%;box-shadow:0 0 60px rgba(184,134,11,0.25),inset 0 1px 0 rgba(240,192,64,0.15);position:relative;}
+.setup-box::before{content:'';position:absolute;inset:6px;border:1px solid rgba(184,134,11,0.2);border-radius:8px;pointer-events:none;}
+.setup-title{font-family:'Playfair Display',serif;font-size:38px;font-style:italic;color:var(--brass-light);text-shadow:0 0 20px rgba(212,160,23,0.5);margin-bottom:4px;text-align:center;}
+.setup-subtitle{font-family:'Cutive Mono',monospace;font-size:11px;letter-spacing:3px;color:var(--fabric);text-align:center;margin-bottom:24px;text-transform:uppercase;}
+.setup-row{display:flex;gap:10px;margin-bottom:12px;}
+.setup-input{flex:1;background:var(--dial-bg);border:2px solid var(--walnut-hi);color:var(--dial-warm);font-family:'Cutive Mono',monospace;font-size:12px;padding:11px 14px;border-radius:6px;outline:none;transition:border-color .2s,box-shadow .2s;width:100%;}
+.setup-input:focus{border-color:var(--brass);box-shadow:0 0 12px rgba(184,134,11,0.3);}
+.setup-input::placeholder{color:#4a3010;}
+.setup-select{background:var(--dial-bg);border:2px solid var(--walnut-hi);color:var(--dial-warm);font-family:'Cutive Mono',monospace;font-size:11px;padding:11px 10px;border-radius:6px;outline:none;cursor:pointer;min-width:120px;}
+.setup-btn{width:100%;background:linear-gradient(180deg,var(--brass-light) 0%,var(--brass) 100%);border:none;border-radius:6px;color:var(--walnut-dark);font-family:'Special Elite',cursive;font-size:16px;letter-spacing:2px;padding:13px;cursor:pointer;transition:all .2s;box-shadow:0 3px 0 #8a6008,0 4px 12px rgba(0,0,0,0.4);margin-top:6px;}
+.setup-btn:hover{background:linear-gradient(180deg,var(--brass-shine) 0%,var(--brass-light) 100%);transform:translateY(-1px);box-shadow:0 4px 0 #8a6008,0 6px 16px rgba(0,0,0,0.5);}
+.setup-btn:active{transform:translateY(1px);box-shadow:0 2px 0 #8a6008;}
+.setup-note{font-family:'Cutive Mono',monospace;font-size:10px;color:#5a3a18;margin-top:12px;text-align:center;line-height:1.6;}
+.setup-error{background:rgba(120,30,10,0.4);border:1px solid #8a2010;color:#f08060;padding:10px 14px;border-radius:4px;font-size:12px;margin-top:10px;display:none;font-family:'Cutive Mono',monospace;}
+.setup-field-label{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--fabric);text-transform:uppercase;margin-bottom:5px;}
+
+/* ═══ CABINET ═══ */
+.radio-cabinet{
+  width:100%;max-width:900px;
+  background:
+    repeating-linear-gradient(92deg,transparent 0px,transparent 18px,rgba(42,26,10,0.18) 18px,rgba(42,26,10,0.18) 19px,transparent 19px,transparent 36px,rgba(60,35,12,0.12) 36px,rgba(60,35,12,0.12) 37px),
+    repeating-linear-gradient(88deg,transparent 0px,transparent 45px,rgba(30,18,6,0.10) 45px,rgba(30,18,6,0.10) 46px),
+    linear-gradient(180deg,#6b3f18 0%,#5a3210 15%,#4a2810 40%,#532e12 55%,#4a2810 70%,#3d2208 90%,#2e1a06 100%);
+  border-radius:18px 18px 12px 12px;
+  box-shadow:0 30px 80px rgba(0,0,0,0.8),0 8px 24px rgba(0,0,0,0.6),inset 0 1px 0 rgba(180,120,50,0.4),inset 0 -2px 0 rgba(0,0,0,0.5),inset 2px 0 0 rgba(120,70,20,0.3),inset -2px 0 0 rgba(20,10,4,0.5);
+  border:3px solid var(--walnut-dark);outline:1px solid rgba(184,134,11,0.15);outline-offset:4px;
+  padding-bottom:20px;
+}
+.top-trim{height:10px;background:linear-gradient(180deg,var(--brass-shine) 0%,var(--brass) 50%,var(--brass-light) 100%);border-radius:16px 16px 0 0;box-shadow:0 2px 8px rgba(0,0,0,0.4);}
+.brand-plate{text-align:center;padding:14px 40px 8px;}
+.brand-name{font-family:'Playfair Display',serif;font-size:42px;font-style:italic;color:var(--brass-light);text-shadow:0 0 30px rgba(212,160,23,0.4),1px 1px 0 rgba(0,0,0,0.6);letter-spacing:3px;}
+.brand-model{font-family:'Cutive Mono',monospace;font-size:10px;letter-spacing:6px;color:var(--fabric);text-transform:uppercase;margin-top:2px;}
+.brand-divider{display:flex;align-items:center;gap:12px;margin:8px 40px 0;}
+.brand-divider-line{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--brass),transparent);}
+.brand-divider-gem{width:6px;height:6px;background:var(--brass-light);transform:rotate(45deg);box-shadow:0 0 6px rgba(212,160,23,0.5);}
+
+/* ═══ RADIO BODY (speaker + dial) ═══ */
+.radio-body{display:grid;grid-template-columns:1fr 230px;gap:0;padding:12px 24px 12px;}
+
+.speaker-section{padding:8px 16px 8px 0;}
+.speaker-frame{background:var(--walnut-dark);border-radius:8px;padding:10px;box-shadow:inset 0 3px 12px rgba(0,0,0,0.7),inset 0 0 0 2px rgba(184,134,11,0.2),0 1px 0 rgba(180,120,40,0.3);height:100%;min-height:190px;position:relative;overflow:hidden;}
+.speaker-fabric{width:100%;height:100%;border-radius:4px;background-color:#7a4f28;background-image:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.25) 3px,rgba(0,0,0,0.25) 4px),repeating-linear-gradient(90deg,transparent,transparent 3px,rgba(0,0,0,0.15) 3px,rgba(0,0,0,0.15) 4px);position:relative;}
+.speaker-holes{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px;}
+.hole-row{display:flex;justify-content:center;}
+.hole{width:5px;height:5px;border-radius:50%;background:rgba(15,8,2,0.8);box-shadow:inset 0 1px 2px rgba(0,0,0,0.9);margin:3px;transition:box-shadow .1s;}
+.hole.pulse{box-shadow:inset 0 1px 2px rgba(0,0,0,0.9),0 0 4px rgba(255,140,0,0.6);}
+
+/* ═══ DIAL PANEL ═══ */
+.dial-panel{display:flex;flex-direction:column;gap:10px;padding:8px 0 8px 16px;border-left:2px solid rgba(0,0,0,0.4);}
+.freq-dial-wrapper{background:var(--dial-bg);border-radius:8px;border:2px solid var(--walnut-dark);padding:10px 12px;box-shadow:inset 0 3px 10px rgba(0,0,0,0.8),0 1px 0 rgba(180,120,40,0.2);position:relative;overflow:hidden;}
+.freq-dial-wrapper::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,rgba(255,140,0,0.08) 0%,transparent 70%);}
+.freq-label{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--fabric);text-align:center;margin-bottom:6px;text-transform:uppercase;}
+.freq-display{font-family:'VT323',monospace;font-size:34px;color:var(--dial-warm);text-align:center;text-shadow:0 0 16px rgba(255,140,0,0.8),0 0 32px rgba(255,140,0,0.3);line-height:1;letter-spacing:2px;}
+.freq-band{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:4px;color:rgba(255,140,0,0.4);text-align:center;margin-top:3px;}
+.tuning-scale{margin-top:6px;position:relative;height:20px;overflow:hidden;}
+.scale-track{display:flex;align-items:flex-start;position:relative;}
+.scale-mark{display:flex;flex-direction:column;align-items:center;flex-shrink:0;}
+.scale-tick{width:1px;background:rgba(255,140,0,0.3);}
+.scale-tick.major{background:rgba(255,140,0,0.7);}
+.scale-num{font-family:'Cutive Mono',monospace;font-size:7px;color:rgba(255,140,0,0.5);margin-top:2px;}
+.needle{position:absolute;top:0;width:2px;height:100%;background:var(--dial-glow);box-shadow:0 0 6px var(--dial-glow);left:50%;transform:translateX(-50%);z-index:2;transition:left .4s ease;}
+
+.magic-eye-wrapper{display:flex;align-items:center;justify-content:center;gap:8px;}
+.magic-eye{width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,#1a4a10 0%,#0d2a08 60%,#051204 100%);border:2px solid var(--walnut-dark);box-shadow:inset 0 2px 8px rgba(0,0,0,0.8),0 0 8px rgba(57,255,20,0.2);position:relative;overflow:hidden;flex-shrink:0;}
+.eye-beam{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -30deg,transparent 0deg,rgba(57,255,20,0.8) 30deg,rgba(57,255,20,0.3) 60deg,transparent 90deg,transparent 360deg);animation:eyeSpin 3s linear infinite;opacity:0.3;transition:opacity .5s;}
+.eye-beam.active{opacity:1;animation-duration:0.8s;}
+@keyframes eyeSpin{to{transform:rotate(360deg);}}
+.eye-label{font-family:'Cutive Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--fabric);text-transform:uppercase;}
+
+.knobs-row{display:flex;justify-content:space-around;align-items:center;}
+.knob-group{text-align:center;}
+.knob{width:42px;height:42px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3d2810 0%,#1c0f06 50%,#0d0602 100%);border:2px solid rgba(0,0,0,0.6);box-shadow:0 4px 12px rgba(0,0,0,0.7),inset 0 1px 0 rgba(255,200,100,0.1),0 0 0 1px rgba(180,120,40,0.2);position:relative;cursor:pointer;transition:transform .15s;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;}
+.knob-dot{width:4px;height:13px;background:var(--brass-light);border-radius:2px;position:absolute;top:4px;box-shadow:0 0 4px rgba(212,160,23,0.4);transform-origin:bottom center;}
+.knob-label{font-family:'Cutive Mono',monospace;font-size:8px;letter-spacing:2px;color:var(--fabric);text-transform:uppercase;}
+
+/* ═══ CHANNEL SELECTOR SECTION ═══ */
+.channel-section{padding:0 24px 6px;}
+.channel-tabs{display:flex;gap:0;border-bottom:2px solid rgba(0,0,0,0.5);margin-bottom:10px;}
+.ch-tab{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--fabric);padding:7px 14px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;text-transform:uppercase;white-space:nowrap;}
+.ch-tab:hover{color:var(--brass-light);}
+.ch-tab.active{color:var(--brass-light);border-bottom-color:var(--brass);background:rgba(184,134,11,0.08);}
+
+.channel-pane{display:none;flex-wrap:wrap;gap:6px;}
+.channel-pane.visible{display:flex;}
+
+.ch-btn{background:linear-gradient(180deg,#2a1a0a 0%,#1a0d04 100%);border:1px solid rgba(184,134,11,0.2);border-radius:4px;color:var(--fabric);font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:1px;padding:6px 10px;cursor:pointer;transition:all .15s;text-transform:uppercase;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,0.5);}
+.ch-btn:hover{border-color:rgba(184,134,11,0.5);color:var(--brass-light);}
+.ch-btn.active{background:linear-gradient(180deg,#3d2208 0%,#2a1504 100%);border-color:var(--brass);color:var(--brass-light);box-shadow:0 1px 2px rgba(0,0,0,0.5),0 0 8px rgba(184,134,11,0.15);}
+
+/* ═══ TICKER ═══ */
+.ticker-machine{margin:8px 24px;background:var(--walnut-dark);border:2px solid rgba(0,0,0,0.5);border-radius:4px;overflow:hidden;display:flex;align-items:stretch;box-shadow:inset 0 2px 8px rgba(0,0,0,0.7),0 1px 0 rgba(180,120,40,0.2);height:28px;}
+.ticker-label{background:var(--brass);color:var(--walnut-dark);font-family:'Cutive Mono',monospace;font-size:8px;letter-spacing:2px;padding:0 10px;display:flex;align-items:center;white-space:nowrap;flex-shrink:0;font-weight:bold;}
+.ticker-scroll{overflow:hidden;flex:1;display:flex;align-items:center;}
+.ticker-text{font-family:'Cutive Mono',monospace;font-size:11px;color:var(--dial-warm);white-space:nowrap;padding-left:100%;animation:scrollTick 50s linear infinite;text-shadow:0 0 6px rgba(255,140,0,0.4);}
+@keyframes scrollTick{to{transform:translateX(-100%);}}
+
+/* ═══ STORY CARD ═══ */
+.broadcast-area{padding:0 24px;}
+.story-card{background:repeating-linear-gradient(0deg,transparent 0px,transparent 27px,rgba(160,100,40,0.08) 27px,rgba(160,100,40,0.08) 28px),linear-gradient(180deg,#f5ead6 0%,#ecdec4 100%);border-radius:6px;padding:18px 22px 14px;box-shadow:inset 0 2px 8px rgba(0,0,0,0.15),0 2px 0 rgba(0,0,0,0.4),0 0 0 2px rgba(0,0,0,0.3);position:relative;min-height:155px;}
+.story-card::before{content:'';position:absolute;left:48px;top:0;bottom:0;width:1px;background:rgba(200,120,80,0.35);}
+.story-meta{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:3px;color:#9a6040;margin-bottom:7px;padding-left:60px;text-transform:uppercase;}
+.story-headline{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:#1a0d04;line-height:1.25;margin-bottom:8px;padding-left:60px;min-height:46px;}
+.story-body{font-family:'Special Elite',cursive;font-size:13px;line-height:28px;color:#2d1a08;padding-left:60px;min-height:84px;max-height:112px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#9a6040 transparent;}
+.story-body .word{transition:background .1s;border-radius:2px;}
+.story-body .word.speaking{background:rgba(255,140,0,0.25);color:#5a2800;}
+.line-nums{position:absolute;left:8px;top:18px;font-family:'Cutive Mono',monospace;font-size:9px;color:rgba(160,100,60,0.4);line-height:28px;text-align:right;width:32px;}
+
+/* ═══ CONTROLS ═══ */
+.controls-bar{display:flex;align-items:center;gap:8px;padding:10px 24px 4px;flex-wrap:wrap;}
+.ctrl-btn{background:linear-gradient(180deg,#2e1c0a 0%,#1a0d04 100%);border:1px solid rgba(184,134,11,0.3);border-radius:6px;color:var(--cream-dark);font-family:'Special Elite',cursive;font-size:13px;letter-spacing:1px;padding:9px 16px;cursor:pointer;transition:all .15s;box-shadow:0 3px 0 rgba(0,0,0,0.6),0 4px 10px rgba(0,0,0,0.4);}
+.ctrl-btn:hover:not(:disabled){background:linear-gradient(180deg,#3d2810 0%,#241508 100%);border-color:rgba(184,134,11,0.6);color:var(--brass-light);}
+.ctrl-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,0.6);}
+.ctrl-btn:disabled{opacity:.35;cursor:not-allowed;}
+.ctrl-btn.primary{background:linear-gradient(180deg,var(--brass-light) 0%,var(--brass) 100%);color:var(--walnut-dark);border-color:var(--brass);font-weight:bold;box-shadow:0 3px 0 #6a4800,0 4px 10px rgba(0,0,0,0.5);}
+.ctrl-btn.primary:hover:not(:disabled){background:linear-gradient(180deg,var(--brass-shine) 0%,var(--brass-light) 100%);box-shadow:0 3px 0 #6a4800,0 4px 16px rgba(184,134,11,0.3);}
+.ctrl-btn.primary:active:not(:disabled){transform:translateY(2px);box-shadow:0 1px 0 #6a4800;}
+.ctrl-btn.danger{border-color:rgba(150,50,20,0.5);color:#d06040;}
+.ctrl-btn.danger:hover:not(:disabled){background:linear-gradient(180deg,#3d1808 0%,#2a1004 100%);border-color:rgba(200,80,40,0.5);color:#e08060;}
+.speed-wrap{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.ctrl-select{background:var(--bakelite);border:1px solid rgba(184,134,11,0.25);color:var(--dial-warm);font-family:'Cutive Mono',monospace;font-size:10px;padding:6px 8px;border-radius:4px;cursor:pointer;box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);}
+.ctrl-label{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--fabric);text-transform:uppercase;}
+
+/* ═══ ERROR + STATUS ═══ */
+.error-strip{background:rgba(100,20,5,0.6);border:1px solid rgba(180,60,20,0.4);color:#e08060;font-family:'Cutive Mono',monospace;font-size:11px;padding:8px 14px;margin:6px 24px 0;border-radius:4px;display:none;}
+.bottom-bar{margin:8px 24px 0;display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid rgba(0,0,0,0.4);}
+.status-lamp{display:flex;align-items:center;gap:8px;}
+.lamp{width:8px;height:8px;border-radius:50%;background:rgba(80,40,10,0.5);border:1px solid rgba(0,0,0,0.4);box-shadow:inset 0 1px 2px rgba(0,0,0,0.5);transition:all .3s;}
+.lamp.on{background:var(--dial-warm);box-shadow:0 0 8px var(--dial-glow),0 0 16px rgba(255,140,0,0.4),inset 0 1px 0 rgba(255,255,200,0.3);}
+.lamp.red-on{background:#ff4020;box-shadow:0 0 8px #ff4020,0 0 16px rgba(255,64,32,0.4);}
+.status-text{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:2px;color:var(--fabric);text-transform:uppercase;}
+.story-counter{font-family:'VT323',monospace;font-size:18px;color:rgba(255,140,0,0.5);text-shadow:0 0 6px rgba(255,140,0,0.3);}
+
+/* ═══ QUEUE ═══ */
+.queue-drawer{margin:6px 24px 0;background:var(--walnut-dark);border:1px solid rgba(0,0,0,0.6);border-radius:6px;overflow:hidden;box-shadow:inset 0 3px 10px rgba(0,0,0,0.6);}
+.queue-header{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid rgba(0,0,0,0.5);cursor:pointer;}
+.queue-header-label{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:3px;color:var(--fabric);text-transform:uppercase;}
+.queue-toggle{color:var(--brass);font-size:12px;}
+.queue-list{max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.queue-list.open{max-height:220px;overflow-y:auto;}
+.queue-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(0,0,0,0.3);cursor:pointer;transition:background .15s;}
+.queue-item:hover{background:rgba(255,149,0,0.05);}
+.queue-item.active{background:rgba(255,149,0,0.08);}
+.q-num{font-family:'VT323',monospace;font-size:18px;color:rgba(255,140,0,0.3);flex-shrink:0;width:20px;line-height:1.2;}
+.queue-item.active .q-num{color:var(--dial-glow);text-shadow:0 0 6px rgba(255,140,0,0.5);}
+.q-info{flex:1;}
+.q-cat{font-family:'Cutive Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(200,149,80,0.5);text-transform:uppercase;margin-bottom:2px;}
+.queue-item.active .q-cat{color:rgba(255,179,80,0.8);}
+.q-title{font-family:'Special Elite',cursive;font-size:12px;color:#7a5530;line-height:1.3;}
+.queue-item.active .q-title{color:var(--cream-dark);}
+
+/* Loading dots */
+.loading-dots{display:inline-flex;gap:5px;margin-left:8px;}
+.ld{width:5px;height:5px;background:var(--walnut-hi);border-radius:50%;animation:ldPulse 1.2s infinite;}
+.ld:nth-child(2){animation-delay:.2s}.ld:nth-child(3){animation-delay:.4s}
+@keyframes ldPulse{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+/* OpenAI badge */
+.openai-badge{font-family:'Cutive Mono',monospace;font-size:8px;letter-spacing:2px;color:rgba(120,200,120,0.6);text-align:center;padding:4px 0 0;text-transform:uppercase;}
+
+/* Language selector pills */
+.lang-strip{display:flex;align-items:center;gap:6px;padding:6px 24px 2px;flex-wrap:wrap;}
+.lang-pill{font-family:'Cutive Mono',monospace;font-size:9px;letter-spacing:2px;padding:5px 12px;border:1px solid rgba(184,134,11,0.2);border-radius:20px;cursor:pointer;background:linear-gradient(180deg,#2a1a0a,#1a0d04);color:var(--fabric);transition:all .15s;text-transform:uppercase;white-space:nowrap;}
+.lang-pill:hover{border-color:rgba(184,134,11,0.5);color:var(--brass-light);}
+.lang-pill.active{border-color:var(--brass);color:var(--brass-light);background:linear-gradient(180deg,#3d2208,#2a1504);box-shadow:0 0 8px rgba(184,134,11,0.2),inset 0 1px 0 rgba(255,200,100,0.08);}
+.lang-strip-label{font-family:'Cutive Mono',monospace;font-size:8px;letter-spacing:3px;color:var(--fabric);text-transform:uppercase;opacity:0.6;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<!-- ═══ SETUP OVERLAY ═══ -->
+<div class="setup-overlay" id="setupOverlay">
+  <div class="setup-box">
+    <div class="setup-title">GenAI Radio</div>
+    <div class="setup-subtitle">Model 1947 · Powered by OpenAI</div>
+
+    <div class="setup-field-label">OpenAI API Key</div>
+    <input class="setup-input" id="apiKeyInput" type="password" placeholder="sk-..." autocomplete="off" style="margin-bottom:16px;">
+
+    <div class="setup-field-label">Your Country</div>
+    <div class="setup-row">
+      <select class="setup-select" id="countrySelect" style="flex:1;" onchange="updateStateList()">
+        <option value="India">India</option>
+        <option value="United States">United States</option>
+        <option value="United Kingdom">United Kingdom</option>
+        <option value="Australia">Australia</option>
+        <option value="Canada">Canada</option>
+        <option value="Germany">Germany</option>
+        <option value="Japan">Japan</option>
+        <option value="Brazil">Brazil</option>
+        <option value="France">France</option>
+        <option value="Singapore">Singapore</option>
+      </select>
+    </div>
+
+    <div class="setup-field-label" style="margin-top:14px;">Your State / Region</div>
+    <select class="setup-select" id="stateSelect" style="width:100%;margin-bottom:16px;"></select>
+
+    <button class="setup-btn" onclick="initRadio()">Tune In</button>
+    <div class="setup-error" id="setupError"></div>
+    <p class="setup-note">Key stored in memory only · Sent only to OpenAI API</p>
+  </div>
+</div>
+
+<!-- ═══ RADIO CABINET ═══ -->
+<div class="radio-cabinet">
+  <div class="top-trim"></div>
+
+  <div class="brand-plate">
+    <div class="brand-name">GenAI Radio</div>
+    <div class="brand-model">Model 1947 · Agentic News Broadcast</div>
+    <div class="brand-divider">
+      <div class="brand-divider-line"></div>
+      <div class="brand-divider-gem"></div>
+      <div class="brand-divider-line"></div>
+    </div>
+    <div class="openai-badge" id="stationLabel">◆ Live Web Search · Powered by OpenAI ◆</div>
+  </div>
+
+  <!-- Speaker + Dial -->
+  <div class="radio-body">
+    <div class="speaker-section">
+      <div class="speaker-frame">
+        <div class="speaker-fabric">
+          <div class="speaker-holes" id="speakerHoles"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dial-panel">
+      <div class="freq-dial-wrapper">
+        <div class="freq-label">Frequency</div>
+        <div class="freq-display" id="freqDisplay">97.3</div>
+        <div class="freq-band">FM · STEREO</div>
+        <div class="tuning-scale">
+          <div class="needle" id="needle"></div>
+          <div class="scale-track" id="scaleTrack"></div>
+        </div>
+      </div>
+
+      <div class="magic-eye-wrapper">
+        <div class="magic-eye">
+          <div class="eye-beam" id="eyeBeam"></div>
+        </div>
+        <div class="eye-label">Tuning<br>Indicator</div>
+      </div>
+
+      <div class="knobs-row">
+        <div class="knob-group">
+          <div class="knob" id="volKnob" onclick="rotateKnob(this)"><div class="knob-dot"></div></div>
+          <div class="knob-label">Volume</div>
+        </div>
+        <div class="knob-group">
+          <div class="knob" id="tuneKnob" onclick="rotateKnob(this)"><div class="knob-dot"></div></div>
+          <div class="knob-label">Tuning</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ CHANNEL TABS ═══ -->
+  <div class="channel-section">
+    <div class="channel-tabs">
+      <div class="ch-tab active" onclick="switchTab('local',this)">📻 Local</div>
+      <div class="ch-tab" onclick="switchTab('country',this)">🏳️ Country</div>
+      <div class="ch-tab" onclick="switchTab('international',this)">🌍 International</div>
+      <div class="ch-tab" onclick="switchTab('sports',this)">🏆 Sports</div>
+      <div class="ch-tab" onclick="switchTab('entertainment',this)">🎬 Entertainment</div>
+      <div class="ch-tab" onclick="switchTab('lifestyle',this)">✨ Lifestyle</div>
+    </div>
+
+    <!-- Local pane: state buttons generated by JS -->
+    <div class="channel-pane visible" id="pane-local"></div>
+
+    <!-- Country pane -->
+    <div class="channel-pane" id="pane-country">
+      <button class="ch-btn active" data-ch="Top Stories" onclick="selectChannel(this,'country')">Top Stories</button>
+      <button class="ch-btn" data-ch="Politics" onclick="selectChannel(this,'country')">Politics</button>
+      <button class="ch-btn" data-ch="Economy & Business" onclick="selectChannel(this,'country')">Economy</button>
+      <button class="ch-btn" data-ch="Science & Technology" onclick="selectChannel(this,'country')">Sci & Tech</button>
+      <button class="ch-btn" data-ch="Health" onclick="selectChannel(this,'country')">Health</button>
+      <button class="ch-btn" data-ch="Education" onclick="selectChannel(this,'country')">Education</button>
+      <button class="ch-btn" data-ch="Weather" onclick="selectChannel(this,'country')">Weather</button>
+    </div>
+
+    <!-- International pane -->
+    <div class="channel-pane" id="pane-international">
+      <button class="ch-btn active" data-ch="World News" onclick="selectChannel(this,'international')">World</button>
+      <button class="ch-btn" data-ch="Geopolitics" onclick="selectChannel(this,'international')">Geopolitics</button>
+      <button class="ch-btn" data-ch="Global Economy" onclick="selectChannel(this,'international')">Global Economy</button>
+      <button class="ch-btn" data-ch="Climate & Environment" onclick="selectChannel(this,'international')">Climate</button>
+      <button class="ch-btn" data-ch="Asia Pacific" onclick="selectChannel(this,'international')">Asia Pacific</button>
+      <button class="ch-btn" data-ch="Europe" onclick="selectChannel(this,'international')">Europe</button>
+      <button class="ch-btn" data-ch="Americas" onclick="selectChannel(this,'international')">Americas</button>
+      <button class="ch-btn" data-ch="Middle East & Africa" onclick="selectChannel(this,'international')">ME & Africa</button>
+    </div>
+
+    <!-- Sports pane -->
+    <div class="channel-pane" id="pane-sports">
+      <button class="ch-btn active" data-ch="Sports Headlines" onclick="selectChannel(this,'sports')">Headlines</button>
+      <button class="ch-btn" data-ch="Cricket" onclick="selectChannel(this,'sports')">Cricket</button>
+      <button class="ch-btn" data-ch="Football (Soccer)" onclick="selectChannel(this,'sports')">Football</button>
+      <button class="ch-btn" data-ch="Basketball (NBA)" onclick="selectChannel(this,'sports')">Basketball</button>
+      <button class="ch-btn" data-ch="Tennis" onclick="selectChannel(this,'sports')">Tennis</button>
+      <button class="ch-btn" data-ch="Formula 1" onclick="selectChannel(this,'sports')">Formula 1</button>
+      <button class="ch-btn" data-ch="Olympics & Athletics" onclick="selectChannel(this,'sports')">Olympics</button>
+      <button class="ch-btn" data-ch="Kabaddi & Local Sports" onclick="selectChannel(this,'sports')">Local Sports</button>
+    </div>
+
+    <!-- Entertainment pane -->
+    <div class="channel-pane" id="pane-entertainment">
+      <button class="ch-btn active" data-ch="Entertainment News" onclick="selectChannel(this,'entertainment')">All</button>
+      <button class="ch-btn" data-ch="Bollywood" onclick="selectChannel(this,'entertainment')">Bollywood</button>
+      <button class="ch-btn" data-ch="Kollywood (Tamil Cinema)" onclick="selectChannel(this,'entertainment')">Kollywood</button>
+      <button class="ch-btn" data-ch="Hollywood" onclick="selectChannel(this,'entertainment')">Hollywood</button>
+      <button class="ch-btn" data-ch="Music" onclick="selectChannel(this,'entertainment')">Music</button>
+      <button class="ch-btn" data-ch="Television & OTT" onclick="selectChannel(this,'entertainment')">TV & OTT</button>
+      <button class="ch-btn" data-ch="Gaming" onclick="selectChannel(this,'entertainment')">Gaming</button>
+      <button class="ch-btn" data-ch="Books & Literature" onclick="selectChannel(this,'entertainment')">Books</button>
+    </div>
+
+    <!-- Lifestyle pane -->
+    <div class="channel-pane" id="pane-lifestyle">
+      <button class="ch-btn active" data-ch="Lifestyle" onclick="selectChannel(this,'lifestyle')">All</button>
+      <button class="ch-btn" data-ch="Food & Cuisine" onclick="selectChannel(this,'lifestyle')">Food</button>
+      <button class="ch-btn" data-ch="Travel" onclick="selectChannel(this,'lifestyle')">Travel</button>
+      <button class="ch-btn" data-ch="Fashion & Beauty" onclick="selectChannel(this,'lifestyle')">Fashion</button>
+      <button class="ch-btn" data-ch="Wellness & Fitness" onclick="selectChannel(this,'lifestyle')">Wellness</button>
+      <button class="ch-btn" data-ch="Parenting & Family" onclick="selectChannel(this,'lifestyle')">Family</button>
+      <button class="ch-btn" data-ch="Personal Finance" onclick="selectChannel(this,'lifestyle')">Finance</button>
+      <button class="ch-btn" data-ch="Spirituality & Culture" onclick="selectChannel(this,'lifestyle')">Culture</button>
+    </div>
+  </div>
+
+  <!-- Ticker -->
+  <div class="ticker-machine">
+    <div class="ticker-label">LIVE WIRE</div>
+    <div class="ticker-scroll">
+      <div class="ticker-text" id="tickerText">Warming up transmitters… ◆ AI agents standing by… ◆ Select a channel to begin broadcast… ◆</div>
+    </div>
+  </div>
+
+  <!-- Story Card -->
+  <div class="broadcast-area">
+    <div class="story-card">
+      <div class="line-nums">1<br>2<br>3<br>4<br>5<br>6</div>
+      <div class="story-meta" id="storyMeta">— AWAITING SIGNAL —</div>
+      <div class="story-headline" id="storyHeadline">No Signal</div>
+      <div class="story-body" id="storyBody">Select a channel above and press Fetch News to pull live stories, then press Broadcast to hear them read aloud in classic radio style.</div>
+    </div>
+  </div>
+
+  <!-- Language Selector -->
+  <div class="lang-strip">
+    <span class="lang-strip-label">Voice Lang:</span>
+    <button class="lang-pill active" data-lang="English" onclick="selectLang(this)">🇬🇧 English</button>
+    <button class="lang-pill" data-lang="Tamil" onclick="selectLang(this)">🔤 Tamil</button>
+    <button class="lang-pill" data-lang="Hindi" onclick="selectLang(this)">🔤 Hindi</button>
+    <button class="lang-pill" data-lang="Malayalam" onclick="selectLang(this)">🔤 Malayalam</button>
+    <button class="lang-pill" data-lang="Kannada" onclick="selectLang(this)">🔤 Kannada</button>
+    <button class="lang-pill" data-lang="Telugu" onclick="selectLang(this)">🔤 Telugu</button>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls-bar">
+    <button class="ctrl-btn primary" id="broadcastBtn" onclick="toggleBroadcast()" disabled>▶ Broadcast</button>
+    <button class="ctrl-btn" id="fetchBtn" onclick="fetchNews()">⬇ Fetch Live News</button>
+    <button class="ctrl-btn" id="nextBtn" onclick="nextStory()" disabled>Next ▶▶</button>
+    <button class="ctrl-btn danger" id="stopBtn" onclick="stopBroadcast()" disabled>■ Stop</button>
+    <div class="speed-wrap">
+      <span class="ctrl-label">Speed</span>
+      <select class="ctrl-select" id="speedSelect">
+        <option value="0.7">Slow</option>
+        <option value="1" selected>Normal</option>
+        <option value="1.3">Fast</option>
+        <option value="1.6">Rapid</option>
+      </select>
+      <select class="ctrl-select" id="genderSelect">
+        <option value="Female">Female Voice</option>
+        <option value="Male">Male Voice</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="error-strip" id="errorStrip"></div>
+
+  <!-- Queue -->
+  <div class="queue-drawer">
+    <div class="queue-header" onclick="toggleQueue()">
+      <span class="queue-header-label">Broadcast Queue</span>
+      <span class="queue-toggle" id="queueToggle">▼</span>
+    </div>
+    <div class="queue-list" id="queueList">
+      <div style="padding:12px 14px;font-family:'Cutive Mono',monospace;font-size:11px;color:#4a3010;">No stories queued. Fetch news to populate.</div>
+    </div>
+  </div>
+
+  <!-- Bottom bar -->
+  <div class="bottom-bar">
+    <div class="status-lamp">
+      <div class="lamp" id="statusLamp"></div>
+      <div class="lamp red-on" id="onAirLamp" style="display:none;"></div>
+      <div class="status-text" id="statusText">Standby</div>
+    </div>
+    <div class="story-counter" id="storyCounter">0 / 0</div>
+  </div>
+</div>
+
+<script>
+// ══ LANGUAGE CONFIG (ResponsiveVoice) ══
+const LANG_CONFIG = {
+  'English':   { rvFemale:'UK English Female',  rvMale:'UK English Male',  prompt:'English' },
+  'Tamil':     { rvFemale:'Tamil Female',        rvMale:'Tamil Male',       prompt:'Tamil (தமிழ்)' },
+  'Hindi':     { rvFemale:'Hindi Female',        rvMale:'Hindi Male',       prompt:'Hindi (हिंदी)' },
+  'Malayalam': { rvFemale:'Malayalam Female',    rvMale:'Malayalam Male',   prompt:'Malayalam (മലയാളം)' },
+  'Kannada':   { rvFemale:'Kannada Female',      rvMale:'Kannada Male',     prompt:'Kannada (ಕನ್ನಡ)' },
+  'Telugu':    { rvFemale:'Telugu Female',       rvMale:'Telugu Male',      prompt:'Telugu (తెలుగు)' },
+};
+
+// ══ DATA ══
+const STATES = {
+  'India': ['Tamil Nadu','Maharashtra','Karnataka','Delhi','Kerala','Andhra Pradesh','Telangana','West Bengal','Rajasthan','Gujarat','Uttar Pradesh','Madhya Pradesh','Bihar','Punjab','Haryana','Odisha','Assam','Jharkhand','Chhattisgarh','Himachal Pradesh','Goa'],
+  'United States': ['California','New York','Texas','Florida','Illinois','Pennsylvania','Ohio','Georgia','North Carolina','Michigan','Washington','Arizona','Massachusetts','Tennessee','Colorado','Minnesota','Wisconsin','Virginia','Maryland','Oregon'],
+  'United Kingdom': ['England','Scotland','Wales','Northern Ireland','London','Yorkshire','Midlands'],
+  'Australia': ['New South Wales','Victoria','Queensland','Western Australia','South Australia','Tasmania','ACT','Northern Territory'],
+  'Canada': ['Ontario','Quebec','British Columbia','Alberta','Manitoba','Saskatchewan','Nova Scotia','New Brunswick'],
+  'Germany': ['Bavaria','Berlin','Hamburg','North Rhine-Westphalia','Baden-Württemberg','Saxony','Hesse'],
+  'Japan': ['Tokyo','Osaka','Kyoto','Hokkaido','Kanagawa','Aichi','Fukuoka'],
+  'Brazil': ['São Paulo','Rio de Janeiro','Minas Gerais','Bahia','Paraná','Rio Grande do Sul','Pernambuco'],
+  'France': ['Île-de-France','Occitanie','Auvergne-Rhône-Alpes','Nouvelle-Aquitaine','Grand Est','Hauts-de-France','Bretagne'],
+  'Singapore': ['Central Region','East Region','North Region','North-East Region','West Region']
+};
+
+const FREQ_MAP = {
+  local:88.5, country:91.0, international:94.0, sports:97.3, entertainment:100.5, lifestyle:103.7
+};
+
+// ══ STATE ══
+let API_KEY='', userCountry='India', userState='Tamil Nadu';
+let activeTab='local', activeChannel='Tamil Nadu Local News';
+let activeLang='English';
+let stories=[], currentIndex=0, isBroadcasting=false;
+let wordSpans=[], queueOpen=false, holeInterval=null, wordTimerTimeout=null;
+let knobAngles={};
+
+// ══ POPULATE STATES ══
+function updateStateList() {
+  const country = document.getElementById('countrySelect').value;
+  const sel = document.getElementById('stateSelect');
+  sel.innerHTML = (STATES[country]||['National']).map(s=>`<option value="${s}">${s}</option>`).join('');
+}
+updateStateList();
+
+// ══ INIT ══
+function initRadio() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key.startsWith('sk-')) {
+    const e = document.getElementById('setupError');
+    e.textContent='Please enter a valid OpenAI API key (starts with sk-)';
+    e.style.display='block'; return;
+  }
+  API_KEY = key;
+  userCountry = document.getElementById('countrySelect').value;
+  userState = document.getElementById('stateSelect').value;
+  document.getElementById('setupOverlay').style.display='none';
+  document.getElementById('stationLabel').textContent=`◆ ${userState}, ${userCountry} · Powered by OpenAI ◆`;
+  buildSpeakerHoles(); buildTuningScale();
+  buildLocalPane();
+  setStatus(true,'Ready · Voice: English');
+}
+document.getElementById('apiKeyInput').addEventListener('keydown',e=>{if(e.key==='Enter')initRadio();});
+
+// ══ LANGUAGE SELECT ══
+function selectLang(btn) {
+  document.querySelectorAll('.lang-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeLang = btn.dataset.lang;
+  setStatus(true,'Language set: '+activeLang+' — Re-fetch for '+activeLang+' content');
+}
+
+// ══ GET RV VOICE ══
+function getRVVoice() {
+  const cfg = LANG_CONFIG[activeLang] || LANG_CONFIG['English'];
+  const gender = document.getElementById('genderSelect').value;
+  return gender==='Male' ? cfg.rvMale : cfg.rvFemale;
+}
+
+// ══ BUILD LOCAL PANE ══
+function buildLocalPane() {
+  const states = STATES[userCountry] || ['National'];
+  const pane = document.getElementById('pane-local');
+  pane.innerHTML = states.map(s=>`<button class="ch-btn ${s===userState?'active':''}" data-ch="${s} Local News" onclick="selectChannel(this,'local')">${s}</button>`).join('');
+  activeChannel = userState + ' Local News';
+}
+
+// ══ TABS ══
+function switchTab(tab, el) {
+  document.querySelectorAll('.ch-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.channel-pane').forEach(p=>p.classList.remove('visible'));
+  document.getElementById('pane-'+tab).classList.add('visible');
+  activeTab = tab;
+  // set needle freq
+  setFreq(FREQ_MAP[tab]||97.3);
+  rotateKnob(document.getElementById('tuneKnob'));
+  // activate first button in pane
+  const firstBtn = document.querySelector(`#pane-${tab} .ch-btn.active`);
+  if (firstBtn) activeChannel = firstBtn.dataset.ch;
+}
+
+function setFreq(f) {
+  document.getElementById('freqDisplay').textContent = f.toFixed(1);
+  // move needle
+  const freqs=[88.5,91.0,94.0,97.3,100.5,103.7];
+  const min=87, max=108;
+  const pct=((f-min)/(max-min))*100;
+  document.getElementById('needle').style.left=pct+'%';
+}
+
+// ══ CHANNEL SELECT ══
+function selectChannel(btn, tab) {
+  document.querySelectorAll(`#pane-${tab} .ch-btn`).forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  activeChannel = btn.dataset.ch;
+}
+
+// ══ BUILD HARDWARE ══
+function buildSpeakerHoles() {
+  const el=document.getElementById('speakerHoles'); let html='';
+  for(let r=0;r<20;r++){html+='<div class="hole-row">';const cols=(r%2===0)?20:19;for(let c=0;c<cols;c++)html+='<div class="hole"></div>';html+='</div>';}
+  el.innerHTML=html;
+}
+function buildTuningScale() {
+  const track=document.getElementById('scaleTrack'); const freqs=[88,91,94,97,101,104,108]; let html='';
+  freqs.forEach((f,i)=>{
+    html+=`<div class="scale-mark" style="flex:1"><div class="scale-tick major" style="height:10px"></div><div class="scale-num">${f}</div></div>`;
+    if(i<freqs.length-1)for(let j=0;j<2;j++)html+=`<div class="scale-mark" style="flex:1"><div class="scale-tick" style="height:5px"></div></div>`;
+  });
+  track.innerHTML=html;
+}
+function rotateKnob(el) {
+  const id=el.id; knobAngles[id]=(knobAngles[id]||0)+36;
+  el.querySelector('.knob-dot').style.transform=`rotate(${knobAngles[id]}deg)`;
+}
+
+// ══ FETCH — Step 1: Live web search, Step 2: Articulate for broadcast ══
+async function fetchNews() {
+  const btn=document.getElementById('fetchBtn');
+  btn.disabled=true;
+  btn.innerHTML='Searching Web<span class="loading-dots"><span class="ld"></span><span class="ld"></span><span class="ld"></span></span>';
+  clearError();
+  document.getElementById('eyeBeam').classList.add('active');
+
+  const langCfg = LANG_CONFIG[activeLang] || LANG_CONFIG['English'];
+  const langInstruction = activeLang==='English'
+    ? 'Write all output in English.'
+    : `Write the final headline, summary, and ticker entirely in ${langCfg.prompt}. Use natural fluent broadcast language. Do not mix in English words.`;
+
+  // Build a targeted search query
+  let searchQuery='';
+  const region = activeTab==='local' ? activeChannel.replace(' Local News','') + ', ' + userCountry : userCountry;
+  if(activeTab==='local')          searchQuery=`latest news ${activeChannel.replace(' Local News','')} ${userCountry} today`;
+  else if(activeTab==='country')   searchQuery=`latest ${activeChannel} news ${userCountry} today`;
+  else if(activeTab==='international') searchQuery=`latest ${activeChannel} news today`;
+  else if(activeTab==='sports')    searchQuery=`latest ${activeChannel} news results scores today`;
+  else if(activeTab==='entertainment') searchQuery=`latest ${activeChannel} news today`;
+  else if(activeTab==='lifestyle') searchQuery=`latest ${activeChannel} trends news today`;
+
+  try {
+    // ── STEP 1: Search the live web with gpt-4o-search-preview ──
+    setStatus(true, '📡 Searching live web…');
+    btn.innerHTML='Searching Web<span class="loading-dots"><span class="ld"></span><span class="ld"></span><span class="ld"></span></span>';
+
+    const searchRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+      body:JSON.stringify({
+        model:'gpt-4o-search-preview',
+        web_search_options: { search_context_size: 'high' },
+        messages:[{
+          role:'user',
+          content:`Search for the 5 most recent and significant news stories about: "${searchQuery}".
+For each story provide:
+- The real headline (as reported)
+- A 2-3 sentence factual summary of what actually happened
+- Source name and approximate date
+
+Format your response as plain numbered list. Be factual, cite only real events you found in search results.`
+        }],
+        max_tokens:2000
+      })
+    });
+    if(!searchRes.ok){const e=await searchRes.json();throw new Error('Search failed: '+(e.error?.message||searchRes.status));}
+    const searchData = await searchRes.json();
+    const rawNews = searchData.choices[0].message.content;
+
+    // ── STEP 2: Articulate into broadcast JSON with gpt-4o ──
+    setStatus(true, '🎙️ Articulating for broadcast…');
+    btn.innerHTML='Scripting<span class="loading-dots"><span class="ld"></span><span class="ld"></span><span class="ld"></span></span>';
+
+    const articulateRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+API_KEY},
+      body:JSON.stringify({
+        model:'gpt-4o',
+        messages:[
+          {role:'system', content:'You are a professional broadcast radio news writer. You transform raw news into polished on-air radio scripts. Always respond with pure valid JSON only — no markdown, no extra text.'},
+          {role:'user', content:`Here are real news stories found via live web search for the channel "${activeChannel}":
+
+${rawNews}
+
+Transform these into exactly 5 radio broadcast scripts. ${langInstruction}
+
+Respond ONLY with this JSON structure:
+{"stories":[{"headline":"Punchy real headline max 10 words","category":"${activeChannel}","source":"source name","summary":"3-4 sentences. Warm authoritative radio voice. Present tense active voice. Based strictly on the real facts above. Will be read aloud on air.","ticker":"Real news ticker max 8 words"}]}`
+          }
+        ],
+        temperature:0.5,
+        max_tokens:2500,
+        response_format:{type:'json_object'}
+      })
+    });
+    if(!articulateRes.ok){const e=await articulateRes.json();throw new Error('Articulation failed: '+(e.error?.message||articulateRes.status));}
+    const artData = await articulateRes.json();
+    const parsed = JSON.parse(artData.choices[0].message.content);
+
+    stories = parsed.stories;
+    currentIndex = 0;
+    renderQueue(); displayStory(0); updateTicker();
+    document.getElementById('broadcastBtn').disabled=false;
+    document.getElementById('nextBtn').disabled=false;
+    setStatus(true, `✅ ${stories.length} live stories · ${activeChannel} · ${activeLang}`);
+
+  } catch(err) {
+    showError('Transmission failed: '+err.message);
+    setStatus(true,'Error — try again');
+  }
+  document.getElementById('eyeBeam').classList.remove('active');
+  btn.disabled=false; btn.textContent='⬇ Fetch Live News';
+}
+
+// ══ DISPLAY ══
+function displayStory(i) {
+  if(!stories[i]) return;
+  const s=stories[i];
+  const src = s.source ? ` · ${s.source}` : '';
+  document.getElementById('storyMeta').textContent=`◆ ${s.category.toUpperCase()}${src} ◆`;
+  document.getElementById('storyHeadline').textContent=s.headline;
+  //const words=s.summary.split(' ');
+  const words = (s.headline + " " + s.summary).split(' ');
+  const bodyEl=document.getElementById('storyBody');
+  bodyEl.innerHTML=words.map((w,idx)=>`<span class="word" data-i="${idx}">${w} </span>`).join('');
+  wordSpans=Array.from(bodyEl.querySelectorAll('.word'));
+  document.querySelectorAll('.queue-item').forEach((el,idx)=>el.classList.toggle('active',idx===i));
+  document.getElementById('storyCounter').textContent=`${i+1} / ${stories.length}`;
+}
+
+
+function renderQueue() {
+  const list=document.getElementById('queueList');
+  list.innerHTML=stories.map((s,i)=>`<div class="queue-item ${i===currentIndex?'active':''}" onclick="jumpToStory(${i})"><div class="q-num">${i+1}</div><div class="q-info"><div class="q-cat">${s.category}</div><div class="q-title">${s.headline}</div></div></div>`).join('');
+  if(!queueOpen){document.getElementById('queueList').classList.add('open');queueOpen=true;document.getElementById('queueToggle').textContent='▲';}
+}
+function jumpToStory(i){stopBroadcast();currentIndex=i;displayStory(i);}
+function updateTicker(){document.getElementById('tickerText').textContent=stories.map(s=>s.ticker).join(' ◆ ')+' ◆ ';}
+function toggleQueue(){queueOpen=!queueOpen;document.getElementById('queueList').classList.toggle('open',queueOpen);document.getElementById('queueToggle').textContent=queueOpen?'▲':'▼';}
+
+// ══ BROADCAST via ResponsiveVoice ══
+function toggleBroadcast(){if(isBroadcasting)pauseBroadcast();else startBroadcast();}
+
+function startBroadcast(){
+  if(!stories.length)return;
+  isBroadcasting=true;
+  document.getElementById('broadcastBtn').textContent='⏸ Pause';
+  document.getElementById('stopBtn').disabled=false;
+  document.getElementById('onAirLamp').style.display='block';
+  document.getElementById('eyeBeam').classList.add('active');
+  setStatus(true,'On Air · '+activeLang); pulseHoles(true); broadcastCurrent();
+}
+
+function pauseBroadcast(){
+  responsiveVoice.pause();
+  isBroadcasting=false; stopWordTimer();
+  document.getElementById('broadcastBtn').textContent='▶ Broadcast';
+  document.getElementById('onAirLamp').style.display='none';
+  document.getElementById('eyeBeam').classList.remove('active');
+  pulseHoles(false); setStatus(true,'Paused');
+}
+
+function stopBroadcast(){
+  responsiveVoice.cancel();
+  isBroadcasting=false; stopWordTimer(); clearWordHighlight();
+  document.getElementById('broadcastBtn').textContent='▶ Broadcast';
+  document.getElementById('stopBtn').disabled=true;
+  document.getElementById('onAirLamp').style.display='none';
+  document.getElementById('eyeBeam').classList.remove('active');
+  pulseHoles(false); setStatus(true,'Stopped');
+}
+
+function broadcastCurrent(){
+  if(!isBroadcasting||!stories[currentIndex])return;
+  const s=stories[currentIndex];
+  const rate=parseFloat(document.getElementById('speedSelect').value);
+  const voice=getRVVoice();
+  const text=`${s.headline}. ${s.summary}`;
+  const wordsArr=s.summary.split(' ');
+  // Estimate ms per word based on text length and rate
+  const avgWordMs=Math.max(120, Math.round((text.length / rate) * 52 / wordsArr.length));
+
+  responsiveVoice.speak(text, voice, {
+    rate:rate, pitch:0.95, volume:1,
+    onstart:()=>{ startWordTimer(wordsArr, avgWordMs); },
+    onend:()=>{
+      stopWordTimer(); clearWordHighlight();
+      if(isBroadcasting){
+        currentIndex++;
+        if(currentIndex<stories.length){ displayStory(currentIndex); setTimeout(()=>broadcastCurrent(),900); }
+        else{ currentIndex=0; displayStory(0); setStatus(true,'Queue complete — replaying'); setTimeout(()=>broadcastCurrent(),2000); }
+      }
+    },
+    onerror:()=>{ stopWordTimer(); showError('Voice error. This language may need a ResponsiveVoice subscription. Try English.'); stopBroadcast(); }
+  });
+}
+
+// Timer-based word highlight (ResponsiveVoice has no word boundary events)
+let currentWordIdx=0;
+function startWordTimer(words, avgMs){
+  currentWordIdx=0; stopWordTimer();
+  function next(){
+    clearWordHighlight();
+    if(currentWordIdx<wordSpans.length){
+      wordSpans[currentWordIdx].classList.add('speaking');
+      currentWordIdx++;
+      wordTimerTimeout=setTimeout(next, avgMs);
+    }
+  }
+  next();
+}
+function stopWordTimer(){ if(wordTimerTimeout){clearTimeout(wordTimerTimeout);wordTimerTimeout=null;} }
+
+function nextStory(){
+  const was=isBroadcasting; stopBroadcast();
+  currentIndex=(currentIndex+1)%stories.length; displayStory(currentIndex);
+  if(was){ isBroadcasting=true; document.getElementById('broadcastBtn').textContent='⏸ Pause'; document.getElementById('stopBtn').disabled=false; document.getElementById('onAirLamp').style.display='block'; document.getElementById('eyeBeam').classList.add('active'); pulseHoles(true); broadcastCurrent(); }
+}
+function clearWordHighlight(){ wordSpans.forEach(w=>w.classList.remove('speaking')); }
+
+// ══ SPEAKER PULSE ══
+function pulseHoles(on){
+  if(holeInterval){clearInterval(holeInterval);holeInterval=null;}
+  const holes=document.querySelectorAll('.hole');
+  if(!on){holes.forEach(h=>h.classList.remove('pulse'));return;}
+  holeInterval=setInterval(()=>{holes.forEach(h=>{if(Math.random()>0.85)h.classList.add('pulse');else h.classList.remove('pulse');});},120);
+}
+
+// ══ HELPERS ══
+function setStatus(on,msg){document.getElementById('statusLamp').className='lamp'+(on?' on':'');document.getElementById('statusText').textContent=msg;}
+function showError(msg){const el=document.getElementById('errorStrip');el.textContent=msg;el.style.display='block';}
+function clearError(){document.getElementById('errorStrip').style.display='none';}
+</script>
+</body>
+</html>
